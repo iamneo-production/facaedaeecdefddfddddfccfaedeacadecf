@@ -1,85 +1,78 @@
 package com.examly.springapp;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.Select;
+import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+import java.net.URL;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import java.net.MalformedURLException;
+import org.openqa.selenium.WebElement;
+import java.util.concurrent.TimeUnit;
+import java.util.List;
 
-import org.junit.Test; 
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-@SpringBootTest(classes = SpringappApplication.class)
-@AutoConfigureMockMvc
-@RunWith(SpringRunner.class)
-public class SpringApplicationTests {
-
-	@Autowired
-    private MockMvc mockMvc;	
-
-	//Add A New Task
-	@Test
-    public void test_case1() throws Exception {
-		
-		String dataOne = "{\"taskId\":\"12211\",\"taskHolderName\":\"Gowthaman M\",\"taskDate\":\"4/15/2021\",\"taskName\":\"Spring Projects\",\"taskStatus\":\"In Progress\"}";
-	 	mockMvc.perform(MockMvcRequestBuilders.post("/saveTask")
-	 			.contentType(MediaType.APPLICATION_JSON)
-	 			.content(dataOne)
-	 			.accept(MediaType.APPLICATION_JSON))
-	        	.andExpect(status().isOk())
-	        	.andReturn();
-	 	
-    }
+public class FacebookSignupTest {
 	
+	WebDriver driver;
 	
-	//Get All Task
-	@Test
-    public void test_case2() throws Exception {
-		
-	 	mockMvc.perform(MockMvcRequestBuilders.get("/alltasks")
-	 			.contentType(MediaType.APPLICATION_JSON)
-	 			.accept(MediaType.APPLICATION_JSON))
-	        	.andExpect(status().isOk())
-		        .andExpect(MockMvcResultMatchers.jsonPath("$[*].houseNo").exists())
-		        .andExpect(MockMvcResultMatchers.jsonPath("$").isNotEmpty())
-	        	.andReturn();
-	 	
-    }
+	String fbUrl = "https://www.fb.com";
+	String facebookUrl = "https://www.facebook.com";
 	
-	//Get A Task By ID
-	@Test
-	public void test_case3() throws Exception {
+	@BeforeClass
+	public void invokeBrowser(){
+
+		ChromeOptions chromeOptions = new ChromeOptions();
+        WebDriver driver = new RemoteWebDriver(new URL("http://34.85.242.216:4444"), chromeOptions);
 		
-		mockMvc.perform(MockMvcRequestBuilders.get("/getTask")
-				.param("taskId","12211")
-				.contentType(MediaType.APPLICATION_JSON)
-		 		.accept(MediaType.APPLICATION_JSON))
-		        .andExpect(status().isOk())
-		        .andExpect(jsonPath("$.taskHolderName").value("Gowthaman M"))
-		        .andExpect(jsonPath("$.taskDate").value("4/15/2021"))
-		        .andExpect(jsonPath("$.taskName").value("Spring Projects"))
-				.andExpect(jsonPath("$.taskStatus").value("In Progress"))
-		        .andReturn();
-			
+		driver.manage().window().maximize();
+
+		driver.manage().deleteAllCookies();
+		
+		driver.get(fbUrl);
+		
+		String urlFromBrowser = driver.getCurrentUrl();
+		
+		Assert.assertEquals(urlFromBrowser, facebookUrl, "No redirection happened");
+		
+		
 	}
 	
-	//Delete A Task
+	
 	@Test
-	public void test_case4() throws Exception {
+	public void facebookSignUp() {
 		
-		mockMvc.perform(MockMvcRequestBuilders.get("/deleteTask")
-				.param("taskId","12211")
-				.contentType(MediaType.APPLICATION_JSON)
-		 		.accept(MediaType.APPLICATION_JSON))
-		        .andExpect(status().isOk())
-		        .andReturn();
-			
+		driver.findElement(By.name("firstname")).sendKeys("Test");
+		driver.findElement(By.name("lastname")).sendKeys("User");
+		driver.findElement(By.name("reg_email__")).sendKeys("testuser@test.com");
+		driver.findElement(By.name("reg_passwd__")).sendKeys("testPassword");
+		
+		Select selDate = new Select(driver.findElement(By.id("day")));
+		Select selMonth = new Select(driver.findElement(By.id("month")));
+		Select selYear = new Select(driver.findElement(By.id("year")));
+		
+		selDate.selectByVisibleText("21");
+		selMonth.selectByVisibleText("Jun");
+		selYear.selectByVisibleText("1989");
+		
+		driver.findElement(By.xpath("//input[@type='radio' and @value='2']")).click();
+		
+		driver.findElement(By.xpath("//button[text()='Sign Up']")).click();
 	}
-
+	
+	
+	@AfterClass
+	public void closeBrowser(){
+		
+		driver.quit();
+		
+	}
 
 }
